@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import re
 from datetime import datetime, timedelta
-from groq import Groq
+import requests
 
 # ====== НАСТРОЙКИ ======
 AVAILABLE_MODELS = [
@@ -147,7 +147,6 @@ def parse_vocabulary(text):
 
 # ====== GROQ API ======
 def generate_text(api_key, model, topic, level, include_vocab, include_translation):
-    client = Groq(api_key=api_key)
     if level == "A1":
         prompt = f"""You are an expert Catalan language teacher. Generate a VERY SIMPLE text in CATALAN about: "{topic}".
 CEFR level: A1. Sentences 12 words or less. Simple times ONLY. No complex grammar. 10-15 sentences max.
@@ -173,17 +172,26 @@ Output format:
         if include_translation:
             prompt += "\n### TRANSLATION\n[full Russian translation]"
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        max_tokens=3000,
+    response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": 3000,
+        },
+        timeout=60,
     )
-    return response.choices[0].message.content
+    response.raise_for_status()
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
 
 
 def translate_word(api_key, model, word, context_text=""):
-    client = Groq(api_key=api_key)
     context_section = ""
     if context_text and context_text.strip():
         ctx = context_text.strip()[:800]
@@ -203,13 +211,24 @@ Use EXACTLY this format:
 2. [Catalan] — [Russian]
 3. [Catalan] — [Russian]
 All explanations in Russian."""
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=800,
+
+    response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": 800,
+        },
+        timeout=60,
     )
-    return response.choices[0].message.content
+    response.raise_for_status()
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
 
 
 def extract_translation_pair(text):
