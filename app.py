@@ -154,7 +154,7 @@ Output format:
 ### TEXT
 [Catalan text]
 ### VOCABULARY
-[list of A1 words: Catalan — Russian translation]
+[list of A1 words: Catalan — Pronunciation IPA - Russian translation]
 """
         if include_translation:
             prompt += "\n### TRANSLATION\n[Russian translation]"
@@ -165,7 +165,7 @@ Output format:
 ### TEXT
 [Catalan text]
 ### VOCABULARY
-[list of {level} words: Catalan — Russian translation]
+[list of {level} words: Catalan — Pronunciation IPA - Russian translation]
 """
         if not include_vocab:
             prompt += "\n(omit VOCABULARY section)"
@@ -207,9 +207,9 @@ Use EXACTLY this format:
 ### В КОНТЕКСТЕ
 [how this word is understood in the text above. If no context — write "Контекст не предоставлен"]
 ### ПРИМЕРЫ
-1. [Catalan] — [Russian]
-2. [Catalan] — [Russian]
-3. [Catalan] — [Russian]
+1. [Catalan] — [Pronunciation IPA] - [Russian]
+2. [Catalan] — [Pronunciation IPA] - [Russian]
+3. [Catalan] — [Pronunciation IPA] - [Russian]
 All explanations in Russian."""
 
     response = requests.post(
@@ -222,7 +222,7 @@ All explanations in Russian."""
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.3,
-            "max_tokens": 800,
+            "max_tokens": 1500,
         },
         timeout=60,
     )
